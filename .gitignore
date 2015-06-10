@@ -1,0 +1,6 @@
+# JetBrains junk
+.idea/*
+*.iml
+
+# The binary itself
+tinyplannr

@@ -6,26 +6,29 @@ import (
 	"fmt"
 	"os"
 	"database/sql"
+	_ "github.com/lib/pq"
+)
+
+type jsonErr struct {
+	Code int    `json:"code"`
+	Text string `json:"text"`
+}
+
+var (
+	db		*sql.DB
 )
 
 func main() {
 	router := ApiRouter()
 
 	connect_str := fmt.Sprintf("user=tinyplannr dbname=tinyplannr password=%s sslmode=disable", os.Getenv("TP_PW"))
-	db, err := sql.Open("postgres", connect_str)
+	db, _= sql.Open("postgres", connect_str)
 
-	if err != nil {
-		panic(err)
-	}
+	db.Ping()
+
+	fmt.Println("Connected to the DB...")
 
 	defer db.Close()
-	userTest, err := getUserById(db, 1)
-	if err != nil {
-		panic(err)
-	} else {
-		fmt.Fprintf(os.Stdout, "User: %v\n", userTest.Email)
-	}
-
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

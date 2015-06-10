@@ -20,4 +20,10 @@ var routes = Routes{
 		"/",
 		Index,
 	},
+	Route{
+		"User",
+		"GET",
+		"/user/{userId}",
+		UserIndex,
+	},
 }
