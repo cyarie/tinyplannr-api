@@ -54,7 +54,7 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user User
+	var user UserCreate
 
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 
