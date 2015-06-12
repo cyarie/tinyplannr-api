@@ -1,12 +1,12 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
-	"fmt"
 	"os"
-	"database/sql"
-	_ "github.com/lib/pq"
 )
 
 type jsonErr struct {
@@ -15,14 +15,14 @@ type jsonErr struct {
 }
 
 var (
-	db		*sql.DB
+	db *sql.DB
 )
 
 func main() {
 	router := ApiRouter()
 
 	connect_str := fmt.Sprintf("user=tinyplannr dbname=tinyplannr password=%s sslmode=disable", os.Getenv("TP_PW"))
-	db, _= sql.Open("postgres", connect_str)
+	db, _ = sql.Open("postgres", connect_str)
 
 	db.Ping()
 
