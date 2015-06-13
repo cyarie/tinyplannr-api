@@ -80,3 +80,31 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 }
+
+func CreateEvent(w http.ResponseWriter, r *http.Request) {
+	var event Event
+
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err := json.Unmarshal(body, &event); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(422) // status code for an unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			panic(err)
+		}
+	}
+
+	e, err := createEventDb(db, event)
+	if err != nil {
+		panic(err)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(e); err != nil {
+		panic(err)
+	}
+}
