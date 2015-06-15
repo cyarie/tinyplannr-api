@@ -37,10 +37,3 @@ CREATE TABLE tinyplannr_api.event (
   create_dt TIMESTAMP,
   update_dt TIMESTAMP
 );
-
-DROP TABLE IF EXISTS tinyplannr_api.event_user_link;
-CREATE TABLE tinyplannr_api.event_user_link (
-  event_id INT REFERENCES tinyplannr_api.event ON UPDATE CASCADE ON DELETE CASCADE,
-  user_id INT REFERENCES tinyplannr_api.user_api ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT event_user_id PRIMARY KEY (event_id, user_id)
-);
