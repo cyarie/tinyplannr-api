@@ -1,3 +1,6 @@
+// Home to all of our HTTP handlers. These lean pretty heavily on the functions in the controllers.go file, which
+// contains the functions used to make calls to the database.
+
 package main
 
 import (
@@ -6,12 +9,21 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"log"
+
+	"github.com/gorilla/mux"
 )
+
+type UserLogin struct {
+	UserName		string
+	Password		string
+}
+
+type LoginResponse struct {
+	Email			string	`json:"email"`
+}
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "WELCOME TO GORT")
@@ -28,7 +40,7 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(userId)
-	user, err := getUserById(db, userId)
+	user, err := getUserDb(db, userId)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -106,6 +118,35 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(e); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	var ul UserLogin
+	var lr LoginResponse
+
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := json.Unmarshal(body, &ul); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(422)
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	lr.Email, err = loginDb(db, ul)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(lr); err != nil {
 		log.Fatal(err)
 	}
 }

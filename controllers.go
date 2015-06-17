@@ -1,4 +1,6 @@
-// Storing all of our database controller functions in this file.
+// Storing all of our database controller functions in this file. Naming follows the pattern of:
+// [function]Db or [handler]Db. These are mostly functions called by our HTTP handlers to interact with the database.
+// I like keeping the SQL/DB trickery out of the handlers -- feels like a good separation of concerns.
 
 package main
 
@@ -13,7 +15,7 @@ const (
 	DefaultCost	int = 13
 )
 
-func getUserById(db *sql.DB, id int64) (*UserDisplay, error) {
+func getUserDb(db *sql.DB, id int64) (*UserDisplay, error) {
 	var retval UserDisplay
 
 	query_str, err := db.Prepare(`SELECT user_id, email, first_name, last_name, zip_code,
@@ -34,7 +36,7 @@ func getUserById(db *sql.DB, id int64) (*UserDisplay, error) {
 	return &retval, err
 }
 
-func createUserAuth(db *sql.DB, u UserCreate) {
+func createUserAuthDb(db *sql.DB, u UserCreate) {
 
 	query_str, err := db.Prepare(`INSERT INTO tinyplannr_api.user_auth
 	                                  VALUES (DEFAULT, $1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -76,11 +78,11 @@ func createUserDb(db *sql.DB, u UserCreate) (*UserDisplay, error) {
 	}
 
 	// Now, let's create the UserAuth entry, which stores the password hash
-	createUserAuth(db, u)
+	createUserAuthDb(db, u)
 
 	lastId := u.ID
 
-	retval, err := getUserById(db, lastId)
+	retval, err := getUserDb(db, lastId)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -130,4 +132,31 @@ func createEventDb(db *sql.DB, e Event) (*Event, error) {
 	}
 
 	return eventData, err
+}
+
+func loginDb(db *sql.DB, ul UserLogin) (string, error) {
+	var hash_pw []byte
+	var email string
+
+	password := []byte(ul.Password)
+
+	query_str, err := db.Prepare(`SELECT email, hash_pw FROM tinyplannr_api.user_auth WHERE email = $1`)
+	if err != nil {
+		panic(err)
+	}
+
+	err = query_str.QueryRow(ul.UserName).Scan(&email, &hash_pw)
+	if err != nil {
+		panic(err)
+	}
+
+	// Compare the hash and PW using the bcrypt library
+	// error_str := "Password is incorrect. Please try again."
+	err = bcrypt.CompareHashAndPassword(hash_pw, password); if err != nil {
+		log.Fatal(err)
+	}
+
+	return email, err
+
+
 }

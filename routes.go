@@ -38,4 +38,10 @@ var routes = Routes{
 		"/event/create",
 		CreateEvent,
 	},
+	Route{
+		"Login",
+		"POST",
+		"/login",
+		Login,
+	},
 }

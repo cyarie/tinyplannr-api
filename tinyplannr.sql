@@ -37,3 +37,12 @@ CREATE TABLE tinyplannr_api.event (
   create_dt TIMESTAMP,
   update_dt TIMESTAMP
 );
+
+DROP TABLE IF EXISTS tinyplannr_api.session;
+CREATE TABLE tinyplannr_api.session (
+  session_key varchar(255) NOT NULL PRIMARY KEY,
+  session_data TEXT NOT NULL,
+  email VARCHAR(255) REFERENCES tinyplannr_api.user_api (email),
+  create_dt TIMESTAMP,
+  expire_dt TIMESTAMP
+)
