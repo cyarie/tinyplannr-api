@@ -144,6 +144,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(lr); err != nil {

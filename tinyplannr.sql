@@ -45,4 +45,4 @@ CREATE TABLE tinyplannr_api.session (
   email VARCHAR(255) REFERENCES tinyplannr_api.user_api (email),
   create_dt TIMESTAMP,
   expire_dt TIMESTAMP
-)
+);
