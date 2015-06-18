@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/sessions"
 	"github.com/gorilla/securecookie"
 )
 
@@ -19,7 +18,6 @@ type jsonErr struct {
 
 
 var db *sql.DB
-var store = sessions.NewCookieStore(securecookie.GenerateRandomKey(64))
 
 func main() {
 	router := ApiRouter()
