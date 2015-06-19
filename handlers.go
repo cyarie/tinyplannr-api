@@ -42,6 +42,18 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 	var userId int64
 	var err error
 
+	// Let's test our sessions by protecting the user index! First, let's grab the session ID from the cookie.
+	sid := getSessionId(r)
+
+	// Alright, now that we've passed some error checking, let's party
+	sessionCheck := validateSessionDb(db, sid)
+
+	if sessionCheck == true {
+		log.Println("Yay!")
+	} else {
+		log.Fatal("CHECK FAILED")
+	}
+
 	if userId, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
 		panic(err)
 	}

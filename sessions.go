@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/securecookie"
 )
 
-// A useful function to generate a session id
+// A useful function to generate a session ID
 func generateSessionId(message string, key []byte) string {
 	key = securecookie.GenerateRandomKey(64)
 	h := hmac.New(sha256.New, key)
@@ -30,6 +30,7 @@ func generateSessionId(message string, key []byte) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
+// Takes a session ID and turns it into a secure cookie
 func setSession(sk string, r http.ResponseWriter) {
 	log.Println(sk)
 	value := map[string]string{
@@ -37,10 +38,24 @@ func setSession(sk string, r http.ResponseWriter) {
 	}
 	if encoded, err := cookieHandler.Encode("tinySession", value); err == nil {
 		cookie := &http.Cookie{
-			Name: "session",
+			Name: "tinySession",
 			Value: encoded,
 			Path: "/",
 		}
 		http.SetCookie(r, cookie)
 	}
+}
+
+func getSessionId(r *http.Request) (sid string) {
+	if cookie, err := r.Cookie("tinySession"); err == nil {
+		cookieValue := make(map[string]string)
+		if err = cookieHandler.Decode("tinySession", cookie.Value, &cookieValue); err == nil {
+			sid = cookieValue["session_id"]
+		} else {
+			log.Fatal(err)
+		}
+	} else {
+		log.Fatal(err)
+	}
+	return sid
 }

@@ -45,6 +45,7 @@ DROP TABLE IF EXISTS tinyplannr_auth.session;
 CREATE TABLE tinyplannr_auth.session (
   session_key varchar(255) NOT NULL PRIMARY KEY,
   email VARCHAR(255) REFERENCES tinyplannr_auth.user (email),
+  is_valid BOOL,
   create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   update_dt TIMESTAMP,
   expire_dt TIMESTAMP

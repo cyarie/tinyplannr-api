@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 const (
@@ -177,5 +178,36 @@ func createSessionDb(db *sql.DB, sd SessionData) (string, error) {
 	}
 
 	return sessionKey, err
+
+}
+
+func validateSessionDb(db *sql.DB, sid string) bool {
+	var expTs time.Time
+	var sessionKey string
+	log.Println(sid)
+	// Write the SQL to grab a session and it's expiration time out of the DB
+	session_str, err := db.Prepare(`SELECT session_key, expire_dt
+	                                FROM tinyplannr_auth.session
+	                                WHERE session_key = $1`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = session_str.QueryRow(sid).Scan(&sessionKey, &expTs)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Fatal("Cannot find the session key. Please try again.")
+		} else {
+			log.Fatal(err)
+		}
+	}
+
+	// Now, we can just do a time comparison. If the current time is before the expiration timestamp, the cookie is not
+	// expired, so return true; otherwise, return false.
+	if time.Now().Before(expTs) == true {
+		return true
+	} else {
+		return false
+	}
 
 }
