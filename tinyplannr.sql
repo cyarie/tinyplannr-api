@@ -35,7 +35,7 @@ CREATE SCHEMA tinyplannr_auth;
 DROP TABLE IF EXISTS tinyplannr_auth.user;
 CREATE TABLE tinyplannr_auth.user (
   auth_id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES tinyplannr_api.user (user_id),
+  user_id INTEGER REFERENCES tinyplannr_api.user (user_id) UNIQUE,
   email VARCHAR(255) REFERENCES tinyplannr_api.user (email) UNIQUE,
   hash_pw TEXT,
   create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
