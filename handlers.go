@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -23,6 +24,12 @@ type UserLogin struct {
 
 type LoginResponse struct {
 	Email			string	`json:"email"`
+}
+
+type SessionData struct {
+	SessionId			string
+	Username			string
+	ExpTime				time.Time
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -125,6 +132,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 func Login(w http.ResponseWriter, r *http.Request) {
 	var ul UserLogin
 	var lr LoginResponse
+	var sd SessionData
 
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
@@ -139,10 +147,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Let's check that password and make sure it's valid!
 	lr.Email, err = loginDb(db, ul)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Let's generate the data we'll fill the cookie with. Set the session to expire in one month.
+	sd.Username = lr.Email
+	sd.ExpTime = time.Now().UTC().Add(30 * 24 * time.Hour)
+	key_str := sd.Username + fmt.Sprint(sd.ExpTime)
+	sd.SessionId = generateSessionId(key_str, []byte("as"))
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)

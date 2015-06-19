@@ -160,3 +160,22 @@ func loginDb(db *sql.DB, ul UserLogin) (string, error) {
 
 
 }
+
+func createSessionDb(db *sql.DB, sd SessionData) (string, error) {
+	var sessionKey string
+
+	// Let's create a session
+	session_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.session (session_key, email, update_dt, expire_dt) VALUES
+	                                   ($1, $2, CURRENT_TIMESTAMP, $4) RETURNING session_key`)
+	if err != nil {
+		panic(err)
+	}
+
+	err = session_str.QueryRow(sd.SessionId, sd.Username, sd.ExpTime).Scan(&sessionKey)
+	if err != nil {
+		panic(err)
+	}
+
+	return sessionKey, err
+
+}
