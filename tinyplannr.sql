@@ -12,6 +12,7 @@ CREATE TABLE tinyplannr_api.user (
   create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   update_dt TIMESTAMP
 );
+CREATE INDEX api_user_idx ON tinyplannr_api.user (user_id, email);
 
 DROP TABLE IF EXISTS tinyplannr_api.event;
 CREATE TABLE tinyplannr_api.event (
@@ -26,6 +27,7 @@ CREATE TABLE tinyplannr_api.event (
   create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   update_dt TIMESTAMP
 );
+CREATE INDEX api_event_idx ON tinyplannr_api.event (user_id);
 
 DROP SCHEMA tinyplannr_auth CASCADE;
 CREATE SCHEMA tinyplannr_auth;
@@ -40,13 +42,16 @@ CREATE TABLE tinyplannr_auth.user (
   update_dt TIMESTAMP,
   last_login_dt TIMESTAMP
 );
+CREATE INDEX auth_user_idx ON tinyplannr_auth.user (user_id, email);
 
 DROP TABLE IF EXISTS tinyplannr_auth.session;
 CREATE TABLE tinyplannr_auth.session (
   session_key varchar(255) NOT NULL PRIMARY KEY,
+  user_id INTEGER REFERENCES tinyplannr_auth.user (user_id),
   email VARCHAR(255) REFERENCES tinyplannr_auth.user (email),
   is_valid BOOL,
   create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   update_dt TIMESTAMP,
   expire_dt TIMESTAMP
 );
+CREATE INDEX auth_session_idx ON tinyplannr_auth.session (session_key);
