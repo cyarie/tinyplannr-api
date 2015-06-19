@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 const (
@@ -20,7 +21,7 @@ func getUserDb(db *sql.DB, id int64) (*UserDisplay, error) {
 
 	query_str, err := db.Prepare(`SELECT user_id, email, first_name, last_name, zip_code,
 	                                  is_active, create_dt, update_dt
-	                              FROM tinyplannr_api.user_api
+	                              FROM tinyplannr_api.user
 	                              WHERE user_id = $1`)
 	if err != nil {
 		panic(err)
@@ -38,7 +39,7 @@ func getUserDb(db *sql.DB, id int64) (*UserDisplay, error) {
 
 func createUserAuthDb(db *sql.DB, u UserCreate) {
 
-	query_str, err := db.Prepare(`INSERT INTO tinyplannr_api.user_auth
+	query_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.user
 	                                  VALUES (DEFAULT, $1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	                                  RETURNING user_id`)
 
@@ -64,7 +65,7 @@ func createUserAuthDb(db *sql.DB, u UserCreate) {
 
 func createUserDb(db *sql.DB, u UserCreate) (*UserDisplay, error) {
 
-	query_str, err := db.Prepare(`INSERT INTO tinyplannr_api.user_api
+	query_str, err := db.Prepare(`INSERT INTO tinyplannr_api.user
 	                                  VALUES (DEFAULT, $1, $2, $3, $4, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	                                  RETURNING user_id`)
 	if err != nil {
@@ -140,7 +141,7 @@ func loginDb(db *sql.DB, ul UserLogin) (string, error) {
 
 	password := []byte(ul.Password)
 
-	query_str, err := db.Prepare(`SELECT email, hash_pw FROM tinyplannr_api.user_auth WHERE email = $1`)
+	query_str, err := db.Prepare(`SELECT email, hash_pw FROM tinyplannr_auth.user WHERE email = $1`)
 	if err != nil {
 		panic(err)
 	}
@@ -158,5 +159,55 @@ func loginDb(db *sql.DB, ul UserLogin) (string, error) {
 
 	return email, err
 
+
+}
+
+func createSessionDb(db *sql.DB, sd SessionData) (string, error) {
+	var sessionKey string
+
+	// Let's create a session
+	session_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.session (session_key, email, update_dt, expire_dt) VALUES
+	                                   ($1, $2, CURRENT_TIMESTAMP, $3) RETURNING session_key`)
+	if err != nil {
+		panic(err)
+	}
+
+	err = session_str.QueryRow(sd.SessionId, sd.Username, sd.ExpTime).Scan(&sessionKey)
+	if err != nil {
+		panic(err)
+	}
+
+	return sessionKey, err
+
+}
+
+func validateSessionDb(db *sql.DB, sid string) bool {
+	var expTs time.Time
+	var sessionKey string
+	log.Println(sid)
+	// Write the SQL to grab a session and it's expiration time out of the DB
+	session_str, err := db.Prepare(`SELECT session_key, expire_dt
+	                                FROM tinyplannr_auth.session
+	                                WHERE session_key = $1`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = session_str.QueryRow(sid).Scan(&sessionKey, &expTs)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Fatal("Cannot find the session key. Please try again.")
+		} else {
+			log.Fatal(err)
+		}
+	}
+
+	// Now, we can just do a time comparison. If the current time is before the expiration timestamp, the cookie is not
+	// expired, so return true; otherwise, return false.
+	if time.Now().Before(expTs) == true {
+		return true
+	} else {
+		return false
+	}
 
 }

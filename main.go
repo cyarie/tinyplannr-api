@@ -18,6 +18,10 @@ type jsonErr struct {
 
 
 var db *sql.DB
+var cookieHandler = securecookie.New(
+	securecookie.GenerateRandomKey(64),
+	securecookie.GenerateRandomKey(32),
+)
 
 func main() {
 	router := ApiRouter()
