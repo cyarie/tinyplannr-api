@@ -7,7 +7,7 @@
 // 5. Generate a random key using gorilla/securecookie, and use it to generate an HMAC of the concatenated string
 // 6. Store that hash, key, expiration TS, and the username in a sessions table
 // 7. Send back a secure cookie containing the session id, username, and expiration TS
-// 8. Hash those values and compare to what is in the DB
+// 8. When checking, grab the session ID, make sure the expiration date is good, and --
 // 9. If valid and not expired, proceed; otherwise, take the appropriate action
 package main
 
@@ -19,7 +19,6 @@ import (
 	"log"
 
 	"github.com/gorilla/securecookie"
-	"fmt"
 )
 
 // A useful function to generate a session id
@@ -31,13 +30,12 @@ func generateSessionId(message string, key []byte) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-func setSession(sd SessionData, r http.ResponseWriter) {
+func setSession(sk string, r http.ResponseWriter) {
+	log.Println(sk)
 	value := map[string]string{
-		"session_id": sd.SessionId,
-		"username": sd.Username,
-		"exp_ts": fmt.Sprint(sd.ExpTime),
+		"session_id": sk,
 	}
-	if encoded, err := cookieHandler.Encode("session", value); err != nil {
+	if encoded, err := cookieHandler.Encode("tinySession", value); err == nil {
 		cookie := &http.Cookie{
 			Name: "session",
 			Value: encoded,

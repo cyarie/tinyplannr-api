@@ -166,7 +166,7 @@ func createSessionDb(db *sql.DB, sd SessionData) (string, error) {
 
 	// Let's create a session
 	session_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.session (session_key, email, update_dt, expire_dt) VALUES
-	                                   ($1, $2, CURRENT_TIMESTAMP, $4) RETURNING session_key`)
+	                                   ($1, $2, CURRENT_TIMESTAMP, $3) RETURNING session_key`)
 	if err != nil {
 		panic(err)
 	}

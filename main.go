@@ -19,8 +19,8 @@ type jsonErr struct {
 
 var db *sql.DB
 var cookieHandler = securecookie.New(
-	os.Getenv("TINYPLANNR_SC_HASH"),
-	os.Getenv("TINYPLANNR_SC_BLOCK"),
+	securecookie.GenerateRandomKey(64),
+	securecookie.GenerateRandomKey(32),
 )
 
 func main() {

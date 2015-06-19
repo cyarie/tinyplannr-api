@@ -153,11 +153,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	// Let's generate the data we'll fill the cookie with. Set the session to expire in one month.
+	// Now that we've passed the login check, let's generate the data we'll fill the cookie with.
 	sd.Username = lr.Email
+	// Set the session to expire in one month.
 	sd.ExpTime = time.Now().UTC().Add(30 * 24 * time.Hour)
 	key_str := sd.Username + fmt.Sprint(sd.ExpTime)
 	sd.SessionId = generateSessionId(key_str, []byte("as"))
+
+	// Alright, let's write the session to the database
+	sk, err := createSessionDb(db, sd)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Now that we have a session written to the database, and it has returned a session key/ID for us, let's
+	// write that to the cookie and add it to the response
+	setSession(sk, w)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
