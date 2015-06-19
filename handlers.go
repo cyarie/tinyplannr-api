@@ -32,21 +32,21 @@ type SessionData struct {
 	ExpTime				time.Time
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func Index(a *appContext, w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "WELCOME TO GORT")
 }
 
-func UserIndex(w http.ResponseWriter, r *http.Request) {
+func UserIndex(a *appContext, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	var userId int64
 	var err error
 
 	// Let's test our sessions by protecting the user index! First, let's grab the session ID from the cookie.
-	sid := getSessionId(r)
+	sid := getSessionId(a, r)
 
 	// Alright, now that we've passed some error checking, let's party
-	sessionCheck := validateSessionDb(db, sid)
+	sessionCheck := validateSessionDb(a.db, sid)
 
 	if sessionCheck == true {
 		log.Println("Yay!")
@@ -59,7 +59,7 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(userId)
-	user, err := getUserDb(db, userId)
+	user, err := getUserDb(a.db, userId)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -84,7 +84,7 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func CreateUser(a *appContext, w http.ResponseWriter, r *http.Request) {
 	var user UserCreate
 
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -101,7 +101,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	u, err := createUserDb(db, user)
+	u, err := createUserDb(a.db, user)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -112,7 +112,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateEvent(w http.ResponseWriter, r *http.Request) {
+func CreateEvent(a *appContext, w http.ResponseWriter, r *http.Request) {
 	var event Event
 
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -129,7 +129,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	e, err := createEventDb(db, event)
+	e, err := createEventDb(a.db, event)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
+func Login(a *appContext, w http.ResponseWriter, r *http.Request) {
 	var ul UserLogin
 	var lr LoginResponse
 	var sd SessionData
@@ -160,7 +160,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Let's check that password and make sure it's valid!
-	lr.Email, err = loginDb(db, ul)
+	lr.Email, err = loginDb(a.db, ul)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -173,14 +173,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	sd.SessionId = generateSessionId(key_str, []byte("as"))
 
 	// Alright, let's write the session to the database
-	sk, err := createSessionDb(db, sd)
+	sk, err := createSessionDb(a.db, sd)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Now that we have a session written to the database, and it has returned a session key/ID for us, let's
 	// write that to the cookie and add it to the response
-	setSession(sk, w)
+	setSession(a, sk, w)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)

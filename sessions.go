@@ -31,12 +31,12 @@ func generateSessionId(message string, key []byte) string {
 }
 
 // Takes a session ID and turns it into a secure cookie
-func setSession(sk string, r http.ResponseWriter) {
+func setSession(a *appContext, sk string, r http.ResponseWriter) {
 	log.Println(sk)
 	value := map[string]string{
 		"session_id": sk,
 	}
-	if encoded, err := cookieHandler.Encode("tinySession", value); err == nil {
+	if encoded, err := a.cookieMachine.Encode("tinySession", value); err == nil {
 		cookie := &http.Cookie{
 			Name: "tinySession",
 			Value: encoded,
@@ -46,10 +46,10 @@ func setSession(sk string, r http.ResponseWriter) {
 	}
 }
 
-func getSessionId(r *http.Request) (sid string) {
+func getSessionId(a *appContext, r *http.Request) (sid string) {
 	if cookie, err := r.Cookie("tinySession"); err == nil {
 		cookieValue := make(map[string]string)
-		if err = cookieHandler.Decode("tinySession", cookie.Value, &cookieValue); err == nil {
+		if err = a.cookieMachine.Decode("tinySession", cookie.Value, &cookieValue); err == nil {
 			sid = cookieValue["session_id"]
 		} else {
 			log.Fatal(err)
