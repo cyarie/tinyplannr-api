@@ -35,7 +35,7 @@ func main() {
 	connect_str := fmt.Sprintf("user=tinyplannr dbname=tinyplannr password=%s sslmode=disable", os.Getenv("TP_PW"))
 	db, _ := sql.Open("postgres", connect_str)
 	context := &appContext{
-		db:					db,
+		db:					*db,
 		cookieMachine:		securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
 	}
 	router := ApiRouter()

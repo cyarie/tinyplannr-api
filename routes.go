@@ -1,11 +1,10 @@
 package main
-import "net/http"
 
 type Route struct {
 	Name        string
 	Method      string
 	Pattern     string
-	HandlerFunc http.HandlerFunc
+	HandlerFunc appHandler
 }
 
 type Routes []Route
@@ -15,30 +14,30 @@ var routes = Routes{
 		"Index",
 		"GET",
 		"/",
-		Index,
+		appHandler{h: Index},
 	},
 	Route{
 		"User",
 		"GET",
 		"/user/{userId}",
-		UserIndex,
+		appHandler{h: UserIndex},
 	},
 	Route{
 		"CreateUser",
 		"POST",
 		"/user/create",
-		CreateUser,
+		appHandler{h: CreateUser},
 	},
 	Route{
 		"CreateEvent",
 		"POST",
 		"/event/create",
-		CreateEvent,
+		appHandler{h: CreateEvent},
 	},
 	Route{
 		"Login",
 		"POST",
 		"/login",
-		Login,
+		appHandler{h: Login},
 	},
 }
