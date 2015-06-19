@@ -20,7 +20,7 @@ func getUserDb(db *sql.DB, id int64) (*UserDisplay, error) {
 
 	query_str, err := db.Prepare(`SELECT user_id, email, first_name, last_name, zip_code,
 	                                  is_active, create_dt, update_dt
-	                              FROM tinyplannr_api.user_api
+	                              FROM tinyplannr_api.user
 	                              WHERE user_id = $1`)
 	if err != nil {
 		panic(err)
@@ -38,7 +38,7 @@ func getUserDb(db *sql.DB, id int64) (*UserDisplay, error) {
 
 func createUserAuthDb(db *sql.DB, u UserCreate) {
 
-	query_str, err := db.Prepare(`INSERT INTO tinyplannr_api.user_auth
+	query_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.user
 	                                  VALUES (DEFAULT, $1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	                                  RETURNING user_id`)
 
@@ -64,7 +64,7 @@ func createUserAuthDb(db *sql.DB, u UserCreate) {
 
 func createUserDb(db *sql.DB, u UserCreate) (*UserDisplay, error) {
 
-	query_str, err := db.Prepare(`INSERT INTO tinyplannr_api.user_api
+	query_str, err := db.Prepare(`INSERT INTO tinyplannr_api.user
 	                                  VALUES (DEFAULT, $1, $2, $3, $4, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	                                  RETURNING user_id`)
 	if err != nil {
@@ -140,7 +140,7 @@ func loginDb(db *sql.DB, ul UserLogin) (string, error) {
 
 	password := []byte(ul.Password)
 
-	query_str, err := db.Prepare(`SELECT email, hash_pw FROM tinyplannr_api.user_auth WHERE email = $1`)
+	query_str, err := db.Prepare(`SELECT email, hash_pw FROM tinyplannr_auth.user WHERE email = $1`)
 	if err != nil {
 		panic(err)
 	}
