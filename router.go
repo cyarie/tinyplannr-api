@@ -11,12 +11,12 @@ func ApiRouter(c *appContext) *mux.Router {
 	for _, route := range routes {
 		var handler appHandler
 
-		handler = appHandler{c, route.HandlerFunc.h}
+		handler = appHandler{c, route.HandlerFunc.auth_route, route.Name, route.HandlerFunc.h}
 		router.
 			Methods(route.Method).
 			Path(route.Pattern).
 			Name(route.Name).
-			Handler(handler)
+			Handler(&handler)
 	}
 
 	return router

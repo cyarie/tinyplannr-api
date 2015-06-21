@@ -184,7 +184,6 @@ func createSessionDb(db *sql.DB, sd SessionData) (string, error) {
 func validateSessionDb(db *sql.DB, sid string) bool {
 	var expTs time.Time
 	var sessionKey string
-	log.Println(sid)
 	// Write the SQL to grab a session and it's expiration time out of the DB
 	session_str, err := db.Prepare(`SELECT session_key, expire_dt
 	                                FROM tinyplannr_auth.session

@@ -26,13 +26,11 @@ func generateSessionId(message string, key []byte) string {
 	key = securecookie.GenerateRandomKey(64)
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(message))
-	log.Println(string([]byte(message)))
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
 // Takes a session ID and turns it into a secure cookie
 func setSession(a *appContext, sk string, r http.ResponseWriter) {
-	log.Println(sk)
 	value := map[string]string{
 		"session_id": sk,
 	}
