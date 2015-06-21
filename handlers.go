@@ -97,6 +97,7 @@ func CreateUser(a *appContext, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Unmarshal(body, &user); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		a.handlerResp = 422
 		w.WriteHeader(422) // status code for an unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			panic(err)
@@ -108,6 +109,7 @@ func CreateUser(a *appContext, w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	a.handlerResp = http.StatusCreated
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(u); err != nil {
 		panic(err)
@@ -125,6 +127,7 @@ func CreateEvent(a *appContext, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Unmarshal(body, &event); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		a.handlerResp = 422
 		w.WriteHeader(422) // status code for an unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			log.Fatal(err)
@@ -137,6 +140,7 @@ func CreateEvent(a *appContext, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	a.handlerResp = http.StatusCreated
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(e); err != nil {
 		log.Fatal(err)
@@ -155,6 +159,7 @@ func Login(a *appContext, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Unmarshal(body, &ul); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		a.handlerResp = 422
 		w.WriteHeader(422)
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			log.Fatal(err)
@@ -185,6 +190,7 @@ func Login(a *appContext, w http.ResponseWriter, r *http.Request) {
 	setSession(a, sk, w)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	a.handlerResp = http.StatusCreated
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(lr); err != nil {
 		log.Fatal(err)
