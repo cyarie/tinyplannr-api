@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/securecookie"
 )
@@ -19,6 +20,7 @@ type jsonErr struct {
 type appContext struct {
 	db						*sql.DB
 	cookieMachine			*securecookie.SecureCookie
+	handlerResp				int
 }
 
 type appHandler struct{
@@ -26,19 +28,29 @@ type appHandler struct{
 	h func(*appContext, http.ResponseWriter, *http.Request)
 }
 
-
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	fn.h(fn.appContext, w, r)
+
+	log.Printf(
+		"%s\t%s\t%d\t%s",
+		r.Method,
+		r.RequestURI,
+		fn.appContext.handlerResp,
+		time.Since(start),
+	)
 }
 
 func main() {
 	connect_str := fmt.Sprintf("user=tinyplannr dbname=tinyplannr password=%s sslmode=disable", os.Getenv("TP_PW"))
 	db, _ := sql.Open("postgres", connect_str)
+
 	context := &appContext{
-		db:					*db,
+		db:					db,
 		cookieMachine:		securecookie.New(securecookie.GenerateRandomKey(64), securecookie.GenerateRandomKey(32)),
 	}
-	router := ApiRouter()
+
+	router := ApiRouter(context)
 
 	context.db.Ping()
 

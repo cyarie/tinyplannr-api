@@ -1,19 +1,17 @@
 package main
 
 import (
-	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func ApiRouter() *mux.Router {
+func ApiRouter(c *appContext) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	for _, route := range routes {
-		var handler http.Handler
+		var handler appHandler
 
-		handler = route.HandlerFunc
-		handler = Logger(handler, route.Name)
+		handler = appHandler{c, route.HandlerFunc.h}
 		router.
 			Methods(route.Method).
 			Path(route.Pattern).
