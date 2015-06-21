@@ -42,23 +42,10 @@ func UserIndex(a *appContext, w http.ResponseWriter, r *http.Request) {
 	var userId int64
 	var err error
 
-	// Let's test our sessions by protecting the user index! First, let's grab the session ID from the cookie.
-	sid := getSessionId(a, r)
-
-	// Alright, now that we've passed some error checking, let's party
-	sessionCheck := validateSessionDb(a.db, sid)
-
-	if sessionCheck == true {
-		log.Println("Yay!")
-	} else {
-		log.Fatal("CHECK FAILED")
-	}
-
 	if userId, err = strconv.ParseInt(vars["userId"], 10, 64); err != nil {
 		panic(err)
 	}
 
-	fmt.Println(userId)
 	user, err := getUserDb(a.db, userId)
 
 	if err != nil {
@@ -190,8 +177,8 @@ func Login(a *appContext, w http.ResponseWriter, r *http.Request) {
 	setSession(a, sk, w)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	a.handlerResp = http.StatusCreated
-	w.WriteHeader(http.StatusCreated)
+	a.handlerResp = http.StatusOK
+	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(lr); err != nil {
 		log.Fatal(err)
 	}
