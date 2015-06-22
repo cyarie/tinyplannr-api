@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DefaultCost	int = 13
+	DefaultCost int = 13
 )
 
 func getUserDb(db *sql.DB, id int64) (*UserDisplay, error) {
@@ -103,7 +103,7 @@ func getEventById(db *sql.DB, id int64) (*Event, error) {
 	}
 
 	err = query_str.QueryRow(id).Scan(&retval.ID, &retval.UserId, &retval.Title, &retval.Description, &retval.Location,
-	        &retval.AllDay, &retval.StartDt, &retval.EndDt, &retval.CreateDt, &retval.UpdateDt)
+		&retval.AllDay, &retval.StartDt, &retval.EndDt, &retval.CreateDt, &retval.UpdateDt)
 	if err != nil {
 		return &retval, err
 	}
@@ -153,12 +153,12 @@ func loginDb(db *sql.DB, ul UserLogin) (string, error) {
 
 	// Compare the hash and PW using the bcrypt library
 	// error_str := "Password is incorrect. Please try again."
-	err = bcrypt.CompareHashAndPassword(hash_pw, password); if err != nil {
+	err = bcrypt.CompareHashAndPassword(hash_pw, password)
+	if err != nil {
 		log.Fatal(err)
 	}
 
 	return email, err
-
 
 }
 

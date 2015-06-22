@@ -12,11 +12,11 @@
 package main
 
 import (
-	"net/http"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"log"
+	"net/http"
 
 	"github.com/gorilla/securecookie"
 )
@@ -36,9 +36,9 @@ func setSession(a *appContext, sk string, r http.ResponseWriter) {
 	}
 	if encoded, err := a.cookieMachine.Encode("tinySession", value); err == nil {
 		cookie := &http.Cookie{
-			Name: "tinySession",
+			Name:  "tinySession",
 			Value: encoded,
-			Path: "/",
+			Path:  "/",
 		}
 		http.SetCookie(r, cookie)
 	}

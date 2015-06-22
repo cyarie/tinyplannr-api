@@ -2,13 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
 	"time"
-	"encoding/base64"
 
 	"github.com/gorilla/securecookie"
 )
@@ -21,18 +21,18 @@ type jsonErr struct {
 // This struct lets us avoid using global variables all over the place, and instead lets us declare a context we can
 // pass into our appHandler struct
 type appContext struct {
-	db						*sql.DB
-	cookieMachine			*securecookie.SecureCookie
-	handlerResp				int
+	db            *sql.DB
+	cookieMachine *securecookie.SecureCookie
+	handlerResp   int
 }
 
 // This struct holds a pointer back to appContext, tells us if the route needs auth or not, gives the handler name
 // and holds our extended handler function
-type appHandler struct{
+type appHandler struct {
 	*appContext
-	auth_route			bool
-	route_name			string
-	h func(*appContext, http.ResponseWriter, *http.Request)
+	auth_route bool
+	route_name string
+	h          func(*appContext, http.ResponseWriter, *http.Request)
 }
 
 func (fn *appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -70,8 +70,8 @@ func main() {
 	fmt.Println(cookie_block)
 
 	context := &appContext{
-		db:					db,
-		cookieMachine:		securecookie.New(cookie_key, cookie_block),
+		db:            db,
+		cookieMachine: securecookie.New(cookie_key, cookie_block),
 	}
 
 	router := ApiRouter(context)

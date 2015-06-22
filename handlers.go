@@ -7,29 +7,29 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strconv"
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
 type UserLogin struct {
-	UserName		string
-	Password		string
+	UserName string
+	Password string
 }
 
 type LoginResponse struct {
-	Email			string	`json:"email"`
+	Email string `json:"email"`
 }
 
 type SessionData struct {
-	SessionId			string
-	Username			string
-	ExpTime				time.Time
+	SessionId string
+	Username  string
+	ExpTime   time.Time
 }
 
 func Index(a *appContext, w http.ResponseWriter, r *http.Request) {
