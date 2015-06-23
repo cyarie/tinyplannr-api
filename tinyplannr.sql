@@ -49,7 +49,7 @@ CREATE TABLE tinyplannr_auth.session (
   session_key varchar(255) NOT NULL PRIMARY KEY,
   user_id INTEGER REFERENCES tinyplannr_auth.user (user_id),
   email VARCHAR(255) REFERENCES tinyplannr_auth.user (email),
-  is_valid BOOL,
+  is_valid BOOL DEFAULT TRUE,
   create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   update_dt TIMESTAMP,
   expire_dt TIMESTAMP

@@ -135,18 +135,19 @@ func createEventDb(db *sql.DB, e Event) (*Event, error) {
 	return eventData, err
 }
 
-func loginDb(db *sql.DB, ul UserLogin) (string, error) {
+func loginDb(db *sql.DB, ul UserLogin) (string, int64, error) {
 	var hash_pw []byte
 	var email string
+	var user_id int64
 
 	password := []byte(ul.Password)
 
-	query_str, err := db.Prepare(`SELECT email, hash_pw FROM tinyplannr_auth.user WHERE email = $1`)
+	query_str, err := db.Prepare(`SELECT email, user_id, hash_pw FROM tinyplannr_auth.user WHERE email = $1`)
 	if err != nil {
 		panic(err)
 	}
 
-	err = query_str.QueryRow(ul.UserName).Scan(&email, &hash_pw)
+	err = query_str.QueryRow(ul.UserName).Scan(&email, &user_id, &hash_pw)
 	if err != nil {
 		panic(err)
 	}
@@ -157,7 +158,7 @@ func loginDb(db *sql.DB, ul UserLogin) (string, error) {
 		log.Fatal(err)
 	}
 
-	return email, err
+	return email, user_id, err
 
 
 }
@@ -166,13 +167,13 @@ func createSessionDb(db *sql.DB, sd SessionData) (string, error) {
 	var sessionKey string
 
 	// Let's create a session
-	session_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.session (session_key, email, update_dt, expire_dt) VALUES
-	                                   ($1, $2, CURRENT_TIMESTAMP, $3) RETURNING session_key`)
+	session_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.session (session_key, user_id, email, update_dt, expire_dt) VALUES
+	                                   ($1, $2, $3, CURRENT_TIMESTAMP, $4) RETURNING session_key`)
 	if err != nil {
 		panic(err)
 	}
 
-	err = session_str.QueryRow(sd.SessionId, sd.Username, sd.ExpTime).Scan(&sessionKey)
+	err = session_str.QueryRow(sd.SessionId, sd.UserId, sd.Username, sd.ExpTime).Scan(&sessionKey)
 	if err != nil {
 		panic(err)
 	}
