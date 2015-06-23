@@ -9,13 +9,13 @@
 // 7. Send back a secure cookie containing the session id, username, and expiration TS
 // 8. When checking, grab the session ID, make sure the expiration date is good, and --
 // 9. If valid and not expired, proceed; otherwise, take the appropriate action
+
 package main
 
 import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/securecookie"
@@ -44,16 +44,16 @@ func setSession(a *appContext, sk string, r http.ResponseWriter) {
 	}
 }
 
-func getSessionId(a *appContext, r *http.Request) (sid string) {
+func getSessionId(a *appContext, r *http.Request) (string, error) {
 	if cookie, err := r.Cookie("tinySession"); err == nil {
 		cookieValue := make(map[string]string)
 		if err = a.cookieMachine.Decode("tinySession", cookie.Value, &cookieValue); err == nil {
-			sid = cookieValue["session_id"]
+			sid := cookieValue["session_id"]
+			return sid, err
 		} else {
-			log.Fatal(err)
+			return "", err
 		}
 	} else {
-		log.Fatal(err)
+		return "", err
 	}
-	return sid
 }

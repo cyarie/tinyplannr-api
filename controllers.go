@@ -37,30 +37,31 @@ func getUserDb(db *sql.DB, id int64) (*UserDisplay, error) {
 	return &retval, err
 }
 
-func createUserAuthDb(db *sql.DB, u UserCreate) {
+func createUserAuthDb(db *sql.DB, u UserCreate) error {
 
 	query_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.user
 	                                  VALUES (DEFAULT, $1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 	                                  RETURNING user_id`)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	password := []byte(u.Password)
 
 	hashedPassword, err := bcrypt.GenerateFromPassword(password, 13)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	err = query_str.QueryRow(u.ID, u.Email, string(hashedPassword)).Scan(&u.ID)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	log.Printf("Created a User with password hash of: %s", string(hashedPassword))
 
+	return err
 }
 
 func createUserDb(db *sql.DB, u UserCreate) (*UserDisplay, error) {
@@ -75,11 +76,15 @@ func createUserDb(db *sql.DB, u UserCreate) (*UserDisplay, error) {
 	// Let's run the first query, which will create the publicly viewable user data
 	err = query_str.QueryRow(u.Email, u.FirstName, u.LastName, u.ZipCode).Scan(&u.ID)
 	if err != nil {
-		panic(err)
+		return &UserDisplay{}, err
 	}
 
 	// Now, let's create the UserAuth entry, which stores the password hash
-	createUserAuthDb(db, u)
+	err = createUserAuthDb(db, u)
+	if err != nil {
+		panic(err)
+		return &UserDisplay{}, err
+	}
 
 	lastId := u.ID
 
@@ -144,19 +149,19 @@ func loginDb(db *sql.DB, ul UserLogin) (string, int64, error) {
 
 	query_str, err := db.Prepare(`SELECT email, user_id, hash_pw FROM tinyplannr_auth.user WHERE email = $1`)
 	if err != nil {
-		panic(err)
+		return "", 503, err
 	}
 
 	err = query_str.QueryRow(ul.UserName).Scan(&email, &user_id, &hash_pw)
 	if err != nil {
-		panic(err)
+		return "", 503, err
 	}
 
 	// Compare the hash and PW using the bcrypt library
 	// error_str := "Password is incorrect. Please try again."
 	err = bcrypt.CompareHashAndPassword(hash_pw, password)
 	if err != nil {
-		log.Fatal(err)
+		return "", 401, err
 	}
 
 	return email, user_id, err
@@ -170,44 +175,45 @@ func createSessionDb(db *sql.DB, sd SessionData) (string, error) {
 	session_str, err := db.Prepare(`INSERT INTO tinyplannr_auth.session (session_key, user_id, email, update_dt, expire_dt) VALUES
 	                                   ($1, $2, $3, CURRENT_TIMESTAMP, $4) RETURNING session_key`)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	err = session_str.QueryRow(sd.SessionId, sd.UserId, sd.Username, sd.ExpTime).Scan(&sessionKey)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	return sessionKey, err
 
 }
 
-func validateSessionDb(db *sql.DB, sid string) bool {
+func validateSessionDb(db *sql.DB, sid string) (bool, error) {
 	var expTs time.Time
+	var isActive bool
 	var sessionKey string
 	// Write the SQL to grab a session and it's expiration time out of the DB
-	session_str, err := db.Prepare(`SELECT session_key, expire_dt
+	session_str, err := db.Prepare(`SELECT session_key, expire_dt, is_active
 	                                FROM tinyplannr_auth.session
 	                                WHERE session_key = $1`)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 
-	err = session_str.QueryRow(sid).Scan(&sessionKey, &expTs)
+	err = session_str.QueryRow(sid).Scan(&sessionKey, &expTs, &isActive)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Fatal("Cannot find the session key. Please try again.")
+			return false, err
 		} else {
-			log.Fatal(err)
+			return false, err
 		}
 	}
 
 	// Now, we can just do a time comparison. If the current time is before the expiration timestamp, the cookie is not
 	// expired, so return true; otherwise, return false.
-	if time.Now().Before(expTs) == true {
-		return true
+	if time.Now().Before(expTs) == true && isActive == true {
+		return true, err
 	} else {
-		return false
+		return false, err
 	}
 
 }
