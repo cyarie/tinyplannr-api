@@ -66,8 +66,6 @@ func main() {
 
 	cookie_key, _ := base64.StdEncoding.DecodeString(os.Getenv("TINYPLANNR_SC_HASH"))
 	cookie_block, _ := base64.StdEncoding.DecodeString(os.Getenv("TINYPLANNR_SC_BLOCK"))
-	fmt.Println(cookie_key)
-	fmt.Println(cookie_block)
 
 	context := &appContext{
 		db:            db,
