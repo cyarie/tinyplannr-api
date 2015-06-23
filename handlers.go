@@ -27,16 +27,10 @@ type LoginResponse struct {
 }
 
 type SessionData struct {
-<<<<<<< HEAD
 	SessionId string
 	Username  string
 	ExpTime   time.Time
-=======
-	SessionId			string
-	UserId				int64
-	Username			string
-	ExpTime				time.Time
->>>>>>> feature/sessions
+	UserId    int64
 }
 
 func Index(a *appContext, w http.ResponseWriter, r *http.Request) {
