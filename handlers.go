@@ -27,9 +27,16 @@ type LoginResponse struct {
 }
 
 type SessionData struct {
+<<<<<<< HEAD
 	SessionId string
 	Username  string
 	ExpTime   time.Time
+=======
+	SessionId			string
+	UserId				int64
+	Username			string
+	ExpTime				time.Time
+>>>>>>> feature/sessions
 }
 
 func Index(a *appContext, w http.ResponseWriter, r *http.Request) {
@@ -154,7 +161,7 @@ func Login(a *appContext, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Let's check that password and make sure it's valid!
-	lr.Email, err = loginDb(a.db, ul)
+	lr.Email, sd.UserId, err = loginDb(a.db, ul)
 	if err != nil {
 		log.Fatal(err)
 	}
