@@ -3,14 +3,15 @@ package main
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gorilla/securecookie"
+	_ "github.com/lib/pq"
 )
 
 type jsonErr struct {
@@ -38,13 +39,23 @@ type appHandler struct {
 func (fn *appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	if fn.auth_route == true {
-		sid := getSessionId(fn.appContext, r)
-		sessionCheck := validateSessionDb(fn.appContext.db, sid)
+		sid, err := getSessionId(fn.appContext, r)
+		if err != nil {
+			json.NewEncoder(w).Encode(jsonErr{http.StatusUnauthorized, "Could not validate session. Please try again."})
+			log.Println(err)
+			return
+		}
+		sessionCheck, err := validateSessionDb(fn.appContext.db, sid)
+		if err != nil {
+			json.NewEncoder(w).Encode(jsonErr{http.StatusUnauthorized, "Could not validate session. Please try again."})
+			log.Println(err)
+			return
+		}
 		if sessionCheck == true {
 			log.Printf("AUTH SUCCESSFUL")
 			fn.h(fn.appContext, w, r)
 		} else {
-			log.Printf("AUTH FAILED")
+			log.Printf("Error: %s", err)
 		}
 	} else {
 		fn.h(fn.appContext, w, r)
